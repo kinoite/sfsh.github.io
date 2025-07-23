@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>softshell (sfsh) - A Customizable Rust & Lua Shell</title>
+    <link rel="icon" href="https://raw.githubusercontent.com/rust-lang/crates.io/master/media/logo/cargo-social-square.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #282c34; /* Dark background */
+            --text-color: #abb2bf; /* Light gray text */
+            --primary-color: #61afef; /* Blue for highlights */
+            --secondary-color: #c678dd; /* Purple for secondary actions */
+            --accent-color: #98c379; /* Green for success/features */
+            --border-color: #3e4451; /* Darker grey for borders */
+            --card-bg: #323842; /* Slightly lighter dark for cards */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            color: var(--primary-color);
+            font-family: 'Fira Code', monospace;
+        }
+
+        header .tagline {
+            font-size: 1.2em;
+            color: var(--accent-color);
+            margin-top: 0.5rem;
+        }
+
+        main {
+            flex-grow: 1;
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Hero section specific styling */
+        #hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background-color: var(--bg-color); /* Hero section can be darker */
+            box-shadow: none;
+            border-radius: 0;
+            padding-top: 0;
+        }
+
+        .hero-content {
+            margin-bottom: 2rem;
+        }
+
+        .hero-content p {
+            font-size: 1.1em;
+            max-width: 700px;
+            margin: 1rem auto;
+        }
+
+        .hero-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.8em 1.5em;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-weight: bold;
+        }
+
+        .button.primary {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+        }
+
+        .button.primary:hover {
+            background-color: #4b9de6;
+            transform: translateY(-2px);
+        }
+
+        .button.secondary {
+            background-color: var(--secondary-color);
+            color: var(--bg-color);
+        }
+
+        .button.secondary:hover {
+            background-color: #b062cb;
+            transform: translateY(-2px);
+        }
+
+        .hero-image {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .hero-image img {
+            max-width: 90%; /* Adjust as needed */
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            border: 1px solid var(--border-color);
+        }
+
+        .image-caption {
+            font-style: italic;
+            margin-top: 0.5rem;
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        /* General element styling */
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin-bottom: 0.5em;
+            padding-left: 1.5em;
+            position: relative;
+        }
+
+        ul li::before {
+            content: '•'; /* Simple bullet point */
+            color: var(--accent-color);
+            position: absolute;
+            left: 0;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1em;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background-color: var(--border-color);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+        }
+
+        .note {
+            background-color: rgba(152, 195, 121, 0.1); /* Light green background for notes */
+            border-left: 4px solid var(--accent-color);
+            padding: 1em;
+            margin-top: 1.5em;
+            border-radius: 4px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9em;
+            color: var(--text-color);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.5em;
+            }
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            .button {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>softshell (sfsh)</h1>
+        <p class="tagline">A Customizable Shell Built with Rust and Lua</p>
+    </header>
+
+    <main>
+        <section id="hero">
+            <div class="hero-content">
+                <p>Experience a fast, flexible, and highly personalizable command-line environment that combines the performance of Rust with the scripting power of Lua.</p>
+                <div class="hero-actions">
+                    <a href="#installation" class="button primary">Install Now</a>
+                    <a href="#features" class="button secondary">Learn More</a>
+                    <a href="https://github.com/kinoite/softshell" class="button secondary" target="_blank">View on GitHub</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="path/to/your/screenshot.png" alt="Screenshot of sfsh prompt" loading="lazy">
+                <p class="image-caption">Craft your unique prompt and commands with ease!</p>
+            </div>
+        </section>
+
+        <section id="features">
+            <h2>✨ Features</h2>
+            <ul>
+                <li><strong>Rust Core:</strong> Blazing-fast execution and robust reliability.</li>
+                <li><strong>Lua Configuration:</strong> Deep customization of prompt, commands, and shell behavior via Lua scripts.</li>
+                <li><strong>Modular Design:</strong> Extend functionality by creating and integrating your own Lua modules.</li>
+                <li><strong>Rich & Informative Prompt:</strong> Design beautiful and functional prompts using ANSI colors and Unicode glyphs.</li>
+                <li><strong>Command History:</strong> Seamlessly recall and navigate through your past commands.</li>
+            </ul>
+        </section>
+
+        <section id="installation">
+            <h2>🚀 Installation</h2>
+            <p>To get started with Softshell, ensure you have <a href="https://rustup.rs/" target="_blank">Rust and Cargo</a> installed, then run:</p>
+            <pre><code>cargo install softshell</code></pre>
+            <p class="note"><strong>Note on Glyphs:</strong> For the full visual experience with icons in your prompt, it is highly recommended to use a <a href="https://www.nerdfonts.com/" target="_blank">Nerd Font</a> (e.g., Fira Code Nerd Font) in your terminal emulator.</p>
+        </section>
+
+        <section id="configuration">
+            <h2>⚙️ Configuration</h2>
+            <p>Softshell is primarily configured via a Lua script. It will look for this file in several standard locations, prioritizing user-specific directories:</p>
+            <ul>
+                <li><code>$XDG_CONFIG_HOME/sfsh/config.lua</code> (e.g., <code>~/.config/sfsh/config.lua</code>)</li>
+                <li><code>~/.config/sfsh/config.lua</code> (common fallback)</li>
+                <li><code>~/.sfshrc.lua</code></li>
+                <li><code>./config.lua</code> (useful for development)</li>
+            </ul>
+            <p>A comprehensive sample configuration, demonstrating prompt customization and custom commands, can be found on our <a href="https://github.com/yourusername/sfsh/blob/main/.sfshrc.lua" target="_blank">GitHub repository</a>. You can copy and modify this file to suit your needs.</p>
+        </section>
+
+        <section id="modules">
+            <h2>📦 Lua Modules</h2>
+            <p>Extend Softshell's functionality even further by writing your own Lua modules. Place these files in the directory specified by the <code>modules_path</code> variable in your <code>config.lua</code> file.</p>
+            <p>For instance, the <code>Softhostname</code> module (which helps resolve your hostname reliably) is a simple Lua file:</p>
+            <pre><code>-- modules/softhostname.lua
+local M = {}
+
+function M.get_hostname()
+    local host = os.getenv("HOSTNAME") or os.getenv("COMPUTERNAME")
+    if host then
+        return host
+    end
+
+    local cmd_output
+    if package.config:sub(1,1) == "\\" then
+        cmd_output = io.popen("hostname"):read("*l")
+    else
+        cmd_output = io.popen("hostname"):read("*l")
+    end
+
+    if cmd_output then
+        return cmd_output:gsub("\n", "")
+    end
+
+    return "localhost"
+end
+
+return M
+</code></pre>
+            <p>View the full source code for the <a href="https://github.com/kinoite/softshell/blob/main/softhostname.lua" target="_blank">Softhostname module on GitHub</a>.</p>
+        </section>
+
+        <section id="usage">
+            <h2>▶️ Usage</h2>
+            <p>After installation, simply open your terminal and run:</p>
+            <pre><code>sfsh</code></pre>
+            <p>Once inside sfsh, you can execute system commands, or call custom Lua functions defined in your <code>config.lua</code> (e.g., try <code>mycommands.hello()</code> if you've included a similar function).</p>
+        </section>
+
+        <section id="contributing">
+            <h2>🤝 Contributing</h2>
+            <p>We welcome contributions from the community! Whether you have an idea for a new feature, find a bug, or want to contribute code, please visit the <a href="https://github.com/yourusername/sfsh" target="_blank">GitHub repository</a> to open an issue or submit a pull request.</p>
+        </section>
+
+        <section id="license">
+            <h2>⚖️ License</h2>
+            <p>softshell (sfsh) is distributed under the terms of the <a href="https://github.com/yourusername/sfsh/blob/main/LICENSE" target="_blank">Apache License, Version 2.0</a>.</p>
+            <p>See the <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">full Apache License 2.0 text</a> for more details.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025, Kinoite, This website's pages are licensed under Creative Commons Zero.</p>
+        <p>Built with ❤️ and Rust.</p>
+    </footer>
+</body>
+</html>
